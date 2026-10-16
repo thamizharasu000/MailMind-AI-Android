@@ -1,0 +1,38 @@
+name: Build MailMind AI APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, master]
+    paths:
+      - 'mobile/**'
+      - 'tools/build_apk.sh'
+      - '.github/workflows/android-apk.yml'
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Build APK
+        env:
+          MAILMIND_API_BASE: ${{ vars.MAILMIND_API_BASE || 'http://10.0.2.2:3000' }}
+        run: ./tools/build_apk.sh
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MailMind-AI-Android-APK
+          path: dist/MailMind_AI.apk
+          if-no-files-found: error
+          retention-days: 14
